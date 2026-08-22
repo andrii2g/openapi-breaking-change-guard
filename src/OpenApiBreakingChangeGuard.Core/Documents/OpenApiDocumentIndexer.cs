@@ -27,7 +27,7 @@ internal static class OpenApiDocumentIndexer
         foreach (var pathProperty in paths.EnumerateObject().OrderBy(static item => item.Name, StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!pathProperty.Name.StartsWith('/', StringComparison.Ordinal))
+            if (pathProperty.Name.Length == 0 || pathProperty.Name[0] != '/')
             {
                 continue;
             }

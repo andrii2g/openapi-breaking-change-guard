@@ -509,7 +509,7 @@ internal sealed class SchemaNormalizer
 
     private NormalizedSchema MergeObjects(ObjectSchema left, ObjectSchema right, SchemaOrigin origin)
     {
-        var properties = new SortedDictionary<string, NormalizedProperty>(left.Properties, StringComparer.Ordinal);
+        var properties = new SortedDictionary<string, NormalizedProperty>(left.Properties.ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal), StringComparer.Ordinal);
         foreach (var property in right.Properties)
         {
             if (properties.TryGetValue(property.Key, out var existing) &&
@@ -537,7 +537,7 @@ internal sealed class SchemaNormalizer
                 "Conflicting allOf additional-properties policies were found.");
         }
 
-        var opaque = new SortedDictionary<string, string>(left.OpaqueKeywords, StringComparer.Ordinal);
+        var opaque = new SortedDictionary<string, string>(left.OpaqueKeywords.ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal), StringComparer.Ordinal);
         foreach (var keyword in right.OpaqueKeywords)
         {
             if (opaque.TryGetValue(keyword.Key, out var existing) && existing != keyword.Value)
