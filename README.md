@@ -158,7 +158,7 @@ Prerequisite: .NET 10 SDK.
 ```bash
 dotnet restore OpenApiBreakingChangeGuard.slnx
 dotnet build OpenApiBreakingChangeGuard.slnx --configuration Release --no-restore
-dotnet test OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
+dotnet test --solution OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
 dotnet format OpenApiBreakingChangeGuard.slnx --verify-no-changes --no-restore
 ```
 
