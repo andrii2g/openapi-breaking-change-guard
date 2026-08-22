@@ -42,7 +42,7 @@ internal static class CliArgumentParser
                 continue;
             }
 
-            if (argument.StartsWith('-', StringComparison.Ordinal))
+            if (argument.Length > 0 && argument[0] == '-')
             {
                 throw new CliUsageException($"Unknown option '{argument}'.");
             }
@@ -90,7 +90,7 @@ internal static class CliArgumentParser
 
         if (argument == option)
         {
-            if (++index >= arguments.Count || arguments[index].StartsWith('-', StringComparison.Ordinal))
+            if (++index >= arguments.Count || (arguments[index].Length > 0 && arguments[index][0] == '-'))
             {
                 throw new CliUsageException($"Option '{option}' requires a value.");
             }
