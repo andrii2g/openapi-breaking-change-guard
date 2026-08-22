@@ -76,8 +76,11 @@ The workflow:
 7. Compares current against the accepted baseline.
 8. Captures the guard exit code without stopping report publication.
 9. Adds Markdown to the workflow job summary.
-10. Uploads the report, current specification, resolved commit, and download metadata.
-11. Completes with a warning when breaking changes are found, and fails only for
+10. Publishes a revision-specific GitHub commit status on OpenAI's stable status
+    anchor using the narrow `statuses: write` workflow permission.
+11. Uploads the report, current specification, resolved commit, download metadata,
+    and generated status documents.
+12. Completes with a warning when breaking changes are found, and fails only for
     invalid input, incomplete analysis, or an unexpected guard result.
 
 The minute is intentionally not `0` because scheduled GitHub workloads may be
@@ -96,7 +99,33 @@ After reviewing findings:
 - Only then replace the baseline and lock in a human-reviewed commit.
 
 Never let the scheduled workflow push, open an automatic baseline PR, or mutate
-the accepted file in the MVP.
+the accepted baseline files in the MVP. Publishing a commit status only attaches
+monitor metadata to a stable historical anchor commit; it cannot change repository
+contents or mark the current `main` commit as failing.
+
+## Repository status display
+
+The README deliberately shows two separate signals:
+
+- **Monitor** is the GitHub Actions result. Green means the workflow successfully
+  completed a reliable comparison.
+- **Latest comparison** identifies the accepted and checked upstream commits and
+  states whether compatibility review is required. Its link opens the monitor
+  runs, where the latest job summary and report artifact are available.
+
+The workflow records the comparison in the `api-compatibility/openai` context on
+stable repository commit
+[`525a28277a7e94e998e090131a4082b5d4dd97e8`](https://github.com/andrii2g/openapi-breaking-change-guard/commit/525a28277a7e94e998e090131a4082b5d4dd97e8).
+That historical commit is only a status anchor; it is not either compared
+OpenAPI revision. The status description contains the short accepted and checked
+upstream SHAs, finding count, and affected-method count. Its target URL points to
+the exact workflow run. The README's dynamic Shields badge reads the latest
+status from GitHub's combined-status API and caches it for five minutes.
+
+Future providers should use the same `scripts/provider-status.sh` publisher with
+a unique provider ID, status context, and stable historical anchor commit. Each
+provider then gets an independent README row and status stream without
+cross-provider query filters or update races.
 
 ## Notifications
 

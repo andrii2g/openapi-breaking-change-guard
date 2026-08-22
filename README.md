@@ -1,7 +1,22 @@
 # OpenAPI Breaking Change Guard
 
 [![CI](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/ci.yml)
-[![OpenAI API monitor](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml/badge.svg)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml)
+
+## Monitored API compatibility
+
+Each row compares a human-reviewed **accepted baseline** with the exact upstream
+commit checked by the latest monitor run. A passing monitor means the comparison
+completed successfully; it does **not** mean the candidate is compatible when
+the comparison says that review is required.
+
+| Provider | Monitor | Latest comparison |
+|---|---|---|
+| OpenAI API | [![OpenAI API monitor](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml/badge.svg)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml) | [![OpenAI API latest comparison](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fandrii2g%2Fopenapi-breaking-change-guard%2Fcommits%2F525a28277a7e94e998e090131a4082b5d4dd97e8%2Fstatus&query=%24.statuses%5B0%5D.description&label=OpenAI%20API&color=blue&cacheSeconds=300)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml) |
+
+The comparison reads `accepted commit → checked commit`. For example,
+`review: 42 breaking · 19 methods` means 42 possible client-breaking findings
+were detected across 19 API methods between those exact snapshots. Select the
+badge, then open the latest run for the affected-method queue and full report.
 
 CLI tool that compares an accepted OpenAPI contract with a candidate contract and fails
 CI when the candidate can break existing clients.
@@ -148,6 +163,7 @@ automatically.
 | `docs/testing.md` | Unit, integration, fixture, and OpenAI regression strategy. |
 | `docs/openai-monitoring.md` | Baseline lifecycle and scheduled monitoring. |
 | `examples/` | Small runnable old/new example and expected Markdown output. |
+| `scripts/` | Reusable provider-status generation and workflow support. |
 | `src/` | Core comparison library and thin CLI host. |
 | `tests/` | xUnit tests and compatibility fixtures. |
 

@@ -23,6 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Test provider status generation
+        shell: bash
+        run: bash scripts/test-provider-status.sh
+
       - name: Install .NET 10
         uses: actions/setup-dotnet@v6
         with:
