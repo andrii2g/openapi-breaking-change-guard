@@ -1,0 +1,60 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Reduced OpenAI MCP fixture",
+    "version": "new"
+  },
+  "paths": {
+    "/v1/responses": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Tool call response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MCPToolCall"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MCPToolCall": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MCPToolCallError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "MCPToolCallError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    }
+  }
+}
+

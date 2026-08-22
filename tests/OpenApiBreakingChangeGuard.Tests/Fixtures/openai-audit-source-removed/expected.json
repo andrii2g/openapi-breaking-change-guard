@@ -1,0 +1,13 @@
+{
+  "isComplete": true,
+  "exitCode": 1,
+  "changes": [
+    {
+      "ruleId": "OBCG011",
+      "severity": "Breaking",
+      "location": "paths./v1/organization/audit_logs.get.responses.200.content.application/json.schema.items.properties.source"
+    }
+  ],
+  "diagnostics": []
+}
+

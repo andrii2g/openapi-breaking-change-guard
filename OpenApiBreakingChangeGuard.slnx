@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenApiBreakingChangeGuard.Core/OpenApiBreakingChangeGuard.Core.csproj" />
+    <Project Path="src/OpenApiBreakingChangeGuard.Cli/OpenApiBreakingChangeGuard.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenApiBreakingChangeGuard.Tests/OpenApiBreakingChangeGuard.Tests.csproj" />
+  </Folder>
+</Solution>
+

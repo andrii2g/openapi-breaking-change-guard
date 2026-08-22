@@ -1,0 +1,13 @@
+{
+  "isComplete": true,
+  "exitCode": 0,
+  "changes": [
+    {
+      "ruleId": "OBCG019",
+      "severity": "NonBreaking",
+      "location": "paths./v1/responses.post.responses.200.content.application/json.schema.properties.error"
+    }
+  ],
+  "diagnostics": []
+}
+

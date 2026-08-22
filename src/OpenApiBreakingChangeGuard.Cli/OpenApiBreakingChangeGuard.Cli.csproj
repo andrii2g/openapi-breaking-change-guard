@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>openapi-guard</AssemblyName>
+    <RootNamespace>OpenApiBreakingChangeGuard.Cli</RootNamespace>
+    <Description>Detect client-breaking changes between two OpenAPI specifications.</Description>
+    <PackageId>OpenApiBreakingChangeGuard</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Andrey Grunyov</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/andrii2g/openapi-breaking-change-guard</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>openapi-guard</ToolCommandName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../OpenApiBreakingChangeGuard.Core/OpenApiBreakingChangeGuard.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
+  </ItemGroup>
+</Project>
+

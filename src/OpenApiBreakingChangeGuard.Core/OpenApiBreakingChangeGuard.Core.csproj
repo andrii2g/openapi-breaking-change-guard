@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>OpenApiBreakingChangeGuard.Core</AssemblyName>
+    <RootNamespace>OpenApiBreakingChangeGuard</RootNamespace>
+    <Description>Semantic OpenAPI compatibility analysis engine.</Description>
+  </PropertyGroup>
+</Project>
+
