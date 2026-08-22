@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore OpenApiBreakingChangeGuard.slnx
+
+      - name: Build
+        run: >-
+          dotnet build OpenApiBreakingChangeGuard.slnx
+          --configuration Release
+          --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test OpenApiBreakingChangeGuard.slnx
+          --configuration Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory artifacts/test-results
+
+      - name: Verify formatting
+        run: >-
+          dotnet format OpenApiBreakingChangeGuard.slnx
+          --verify-no-changes
+          --no-restore
+
+      - name: Pack .NET tool
+        run: >-
+          dotnet pack src/OpenApiBreakingChangeGuard.Cli/OpenApiBreakingChangeGuard.Cli.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+
+      - name: Upload packages and test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-${{ github.run_number }}
+          path: |
+            artifacts/packages/
+            artifacts/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+

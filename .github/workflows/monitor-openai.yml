@@ -1,0 +1,143 @@
+name: Monitor OpenAI API compatibility
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 7 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monitor-openai-api
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout accepted baseline and tool
+        uses: actions/checkout@v5
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Verify baseline provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -s baselines/openai.json
+          test -s baselines/openai-baseline.lock.json
+
+          expected_sha="$(jq -r '.sha256' baselines/openai-baseline.lock.json)"
+          actual_sha="$(sha256sum baselines/openai.json | cut -d ' ' -f 1)"
+
+          if [[ -z "$expected_sha" || "$expected_sha" == "null" ]]; then
+            echo "Baseline lock does not contain sha256." >&2
+            exit 2
+          fi
+
+          if [[ "$actual_sha" != "$expected_sha" ]]; then
+            echo "Baseline SHA-256 does not match its lock file." >&2
+            exit 2
+          fi
+
+      - name: Build guard
+        run: >-
+          dotnet build
+          src/OpenApiBreakingChangeGuard.Cli/OpenApiBreakingChangeGuard.Cli.csproj
+          --configuration Release
+
+      - name: Download current OpenAI specification
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            --dump-header artifacts/openai-download-headers.txt \
+            --output artifacts/openai-current.json \
+            https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.json
+
+          test -s artifacts/openai-current.json
+          jq -e '.openapi and (.paths | type == "object")' \
+            artifacts/openai-current.json >/dev/null
+          sha256sum artifacts/openai-current.json \
+            > artifacts/openai-current.sha256
+
+      - name: Compare current specification with accepted baseline
+        id: guard
+        shell: bash
+        run: |
+          set +e
+
+          dotnet run \
+            --project src/OpenApiBreakingChangeGuard.Cli/OpenApiBreakingChangeGuard.Cli.csproj \
+            --configuration Release \
+            --no-build \
+            -- \
+            baselines/openai.json \
+            artifacts/openai-current.json \
+            --profile client \
+            --include-info \
+            --report artifacts/openai-compatibility-report.md
+
+          guard_exit_code=$?
+          echo "exit_code=$guard_exit_code" >> "$GITHUB_OUTPUT"
+
+          # Publish the report before applying the semantic failure.
+          exit 0
+
+      - name: Add report to job summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f artifacts/openai-compatibility-report.md ]]; then
+            cat artifacts/openai-compatibility-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "# OpenAI API compatibility monitor"
+              echo
+              echo "> The compatibility report was not generated. Inspect the workflow logs."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload current specification and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openai-api-compatibility-${{ github.run_number }}
+          path: |
+            artifacts/openai-current.json
+            artifacts/openai-current.sha256
+            artifacts/openai-download-headers.txt
+            artifacts/openai-compatibility-report.md
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Apply guard exit code
+        if: always()
+        shell: bash
+        env:
+          GUARD_EXIT_CODE: ${{ steps.guard.outputs.exit_code }}
+        run: |
+          if [[ -z "$GUARD_EXIT_CODE" ]]; then
+            echo "::error::The compatibility guard did not produce an exit code."
+            exit 2
+          fi
+
+          if [[ "$GUARD_EXIT_CODE" != "0" ]]; then
+            echo "::error::OpenAPI guard failed with exit code $GUARD_EXIT_CODE."
+            exit "$GUARD_EXIT_CODE"
+          fi
+
