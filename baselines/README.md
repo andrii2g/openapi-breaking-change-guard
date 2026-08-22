@@ -1,19 +1,23 @@
 # Accepted OpenAI baseline
 
-This directory intentionally does not contain an arbitrary moving snapshot in
-the implementation package.
+This directory contains the human-reviewed OpenAI API contract used by the
+scheduled compatibility monitor:
 
-Before enabling the scheduled monitor, add both reviewed files:
+- `openai.json` is the immutable accepted specification snapshot.
+- `openai-baseline.lock.json` records its upstream repository, exact commit,
+  pinned source URL, SHA-256, acceptance time, and reviewer.
+
+The current baseline is pinned to OpenAI commit
+[`f9400172ebe08522ab228b771d885e3bd5456e42`](https://github.com/openai/openai-openapi/commit/f9400172ebe08522ab228b771d885e3bd5456e42)
+from 2026-07-22. The expected SHA-256 is:
 
 ```text
-baselines/openai.json
-baselines/openai-baseline.lock.json
+37026c9d6e0154d9a86c6df27b4fd97cc6f63c35b4f3cca53c6d9c43c989b2f1
 ```
 
-Follow `docs/openai-monitoring.md`. Pin the download to a full upstream commit
-SHA, calculate SHA-256, review the official changelog/deprecations, and commit
-the specification and lock file together.
+The scheduled workflow verifies this digest before comparison. It never writes
+to the repository or accepts a new baseline.
 
-The scheduled workflow checks for the baseline and fails clearly if it has not
-been bootstrapped. It never updates the baseline.
-
+Follow [the monitoring guide](../docs/openai-monitoring.md) for provenance
+verification, interpreting scheduled failures, and the human-reviewed update
+procedure.

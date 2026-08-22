@@ -24,6 +24,17 @@ baselines/openai.json
 baselines/openai-baseline.lock.json
 ```
 
+The accepted snapshot currently points to upstream commit
+[`f9400172ebe08522ab228b771d885e3bd5456e42`](https://github.com/openai/openai-openapi/commit/f9400172ebe08522ab228b771d885e3bd5456e42),
+committed on 2026-07-22. Its SHA-256 is:
+
+```text
+37026c9d6e0154d9a86c6df27b4fd97cc6f63c35b4f3cca53c6d9c43c989b2f1
+```
+
+Treat `openai-baseline.lock.json` as the machine-readable source of truth for
+these values.
+
 The lock file records provenance:
 
 ```json
@@ -40,7 +51,7 @@ The lock file records provenance:
 The analysis report remains timestamp-free; the baseline acceptance record may
 contain time because it is provenance, not generated diff output.
 
-## Bootstrap procedure
+## Baseline update procedure
 
 1. Review the upstream commit and official API changelog/deprecations.
 2. Download `openapi.json` pinned to the full commit SHA, not moving `main`.
@@ -48,6 +59,8 @@ contain time because it is provenance, not generated diff output.
 4. Store the file and lock metadata.
 5. Run the guard against the file itself; expect zero changes and exit `0`.
 6. Commit both baseline files in the same reviewed commit.
+
+Routine scheduled runs must not perform this procedure automatically.
 
 ## Scheduled run
 
