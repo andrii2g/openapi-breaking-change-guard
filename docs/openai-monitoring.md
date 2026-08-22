@@ -77,7 +77,8 @@ The workflow:
 8. Captures the guard exit code without stopping report publication.
 9. Adds Markdown to the workflow job summary.
 10. Uploads the report, current specification, resolved commit, and download metadata.
-11. Fails at the end when the guard result is non-zero.
+11. Completes with a warning when breaking changes are found, and fails only for
+    invalid input, incomplete analysis, or an unexpected guard result.
 
 The minute is intentionally not `0` because scheduled GitHub workloads may be
 delayed at the start of an hour.
@@ -103,14 +104,19 @@ GitHub's normal failed-workflow notification is enough for the MVP. Automatic
 issue creation is deferred because daily duplicate issues require fingerprinting,
 permissions, closure policy, and abuse/noise controls.
 
-## Failure interpretation
+## Result interpretation
 
-| Outcome | Meaning | Action |
-|---|---|---|
-| Exit 0 | No detected breaking change in supported scope. | Review Info changes as convenient. |
-| Exit 1 | Breaking change detected. | Inspect report and affected client logic. |
-| Exit 2 | Download/input/report failure. | Fix workflow or upstream availability issue. |
-| Exit 3 | Analysis incomplete. | Add support or investigate construct before accepting. |
+| Outcome | Workflow result | Meaning | Action |
+|---|---|---|---|
+| Exit 0 | Success | No detected breaking change in supported scope. | Review Info changes as convenient. |
+| Exit 1 | Success with warning | Breaking change detected. | Inspect the report and affected client logic. |
+| Exit 2 | Failure | Download/input/report failure. | Fix the workflow or upstream availability issue. |
+| Exit 3 | Failure | Analysis incomplete. | Add support or investigate the construct before accepting. |
+
+Breaking findings are the monitor's expected product, so they remain prominent
+in the job summary, uploaded report, and a warning annotation without turning the
+workflow run red. Operational failures and unreliable analysis still fail the
+workflow.
 
 ## Deprecations are separate
 
