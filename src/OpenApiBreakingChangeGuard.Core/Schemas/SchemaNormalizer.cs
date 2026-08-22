@@ -112,6 +112,11 @@ internal sealed class SchemaNormalizer
                 return target;
             }
 
+            if (HasOnlyNullableReferenceSibling(element))
+            {
+                return ApplyNullable(element, target, origin);
+            }
+
             var siblings = NormalizeElement(element, location, pointer, usage, cancellationToken, true, false);
             return MergeAllOf([target, siblings], origin);
         }
@@ -487,13 +492,24 @@ internal sealed class SchemaNormalizer
         for (var index = 1; index < branches.Count; index++)
         {
             var next = branches[index];
-            if (result is AnySchema) { result = next; continue; }
-            if (next is AnySchema || result.CanonicalKey == next.CanonicalKey) continue;
+            if (result is AnySchema resultAny)
+            {
+                result = resultAny.OpaqueKeywords.Count == 0 ? next : OpaqueIntersection(origin, result, next);
+                continue;
+            }
+
+            if (next is AnySchema nextAny)
+            {
+                if (nextAny.OpaqueKeywords.Count > 0) result = OpaqueIntersection(origin, result, next);
+                continue;
+            }
+
+            if (result.CanonicalKey == next.CanonicalKey) continue;
             if (result is NeverSchema || next is NeverSchema) { result = new NeverSchema(origin, EmptyOpaque.Instance); continue; }
             if (result is PrimitiveSchema leftPrimitive && next is PrimitiveSchema rightPrimitive)
             {
                 result = leftPrimitive.Type == rightPrimitive.Type
-                    ? leftPrimitive
+                    ? new PrimitiveSchema(leftPrimitive.Type, origin, MergeOpaque(leftPrimitive.OpaqueKeywords, rightPrimitive.OpaqueKeywords))
                     : new NeverSchema(origin, EmptyOpaque.Instance);
                 continue;
             }
@@ -504,11 +520,7 @@ internal sealed class SchemaNormalizer
                 continue;
             }
 
-            return InvalidComposition(
-                origin.LogicalLocation,
-                origin,
-                EmptyOpaque.Instance,
-                "The allOf intersection cannot be represented by the supported schema model.");
+            return OpaqueIntersection(origin, result, next);
         }
 
         return result;
@@ -522,11 +534,11 @@ internal sealed class SchemaNormalizer
             if (properties.TryGetValue(property.Key, out var existing) &&
                 existing.Schema.CanonicalKey != property.Value.Schema.CanonicalKey)
             {
-                return InvalidComposition(
-                    $"{origin.LogicalLocation}.properties.{property.Key}",
-                    origin,
-                    EmptyOpaque.Instance,
-                    $"Conflicting allOf schemas were found for property '{property.Key}'.");
+                var propertyOrigin = origin with { LogicalLocation = $"{origin.LogicalLocation}.properties.{property.Key}" };
+                properties[property.Key] = new(
+                    property.Key,
+                    OpaqueIntersection(propertyOrigin, existing.Schema, property.Value.Schema));
+                continue;
             }
 
             properties[property.Key] = property.Value;
@@ -535,30 +547,18 @@ internal sealed class SchemaNormalizer
         var required = new SortedSet<string>(left.Required, StringComparer.Ordinal);
         required.UnionWith(right.Required);
         var additional = MergeAdditional(left.AdditionalProperties, right.AdditionalProperties, origin);
-        if (additional is null)
-        {
-            return InvalidComposition(
-                $"{origin.LogicalLocation}.additionalProperties",
-                origin,
-                EmptyOpaque.Instance,
-                "Conflicting allOf additional-properties policies were found.");
-        }
-
         var opaque = new SortedDictionary<string, string>(left.OpaqueKeywords.ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal), StringComparer.Ordinal);
         foreach (var keyword in right.OpaqueKeywords)
         {
-            if (opaque.TryGetValue(keyword.Key, out var existing) && existing != keyword.Value)
-            {
-                return InvalidComposition(origin.LogicalLocation, origin, opaque, $"Conflicting allOf keyword '{keyword.Key}' was found.");
-            }
-
-            opaque[keyword.Key] = keyword.Value;
+            opaque[keyword.Key] = opaque.TryGetValue(keyword.Key, out var existing)
+                ? CombineOpaque(existing, keyword.Value)
+                : keyword.Value;
         }
 
         return new ObjectSchema(properties, required, additional, origin, opaque);
     }
 
-    private static AdditionalPropertiesPolicy? MergeAdditional(
+    private AdditionalPropertiesPolicy MergeAdditional(
         AdditionalPropertiesPolicy left,
         AdditionalPropertiesPolicy right,
         SchemaOrigin origin)
@@ -570,8 +570,45 @@ internal sealed class SchemaNormalizer
         if (left.Kind == AdditionalPropertiesKind.AllowedAny) return right;
         if (right.Kind == AdditionalPropertiesKind.AllowedAny) return left;
         if (left.Schema?.CanonicalKey == right.Schema?.CanonicalKey) return left;
-        _ = origin;
-        return null;
+        var additionalOrigin = origin with { LogicalLocation = $"{origin.LogicalLocation}.additionalProperties" };
+        return new(
+            AdditionalPropertiesKind.AllowedSchema,
+            OpaqueIntersection(additionalOrigin, left.Schema!, right.Schema!));
+    }
+
+    private static IReadOnlyDictionary<string, string> MergeOpaque(
+        IReadOnlyDictionary<string, string> left,
+        IReadOnlyDictionary<string, string> right)
+    {
+        var result = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var keyword in left) result[keyword.Key] = keyword.Value;
+        foreach (var keyword in right)
+        {
+            result[keyword.Key] = result.TryGetValue(keyword.Key, out var existing)
+                ? CombineOpaque(existing, keyword.Value)
+                : keyword.Value;
+        }
+
+        return result;
+    }
+
+    private static string CombineOpaque(string left, string right)
+    {
+        if (left == right) return left;
+        var values = new[] { left, right }.Order(StringComparer.Ordinal).ToArray();
+        return $"allOf[{values[0].Length}:{values[0]};{values[1].Length}:{values[1]}]";
+    }
+
+    private static UnsupportedSchema OpaqueIntersection(
+        SchemaOrigin origin,
+        params NormalizedSchema[] schemas)
+    {
+        var canonical = string.Join(
+            "\u001f",
+            schemas.Select(static schema => schema.CanonicalKey).Order(StringComparer.Ordinal));
+        var hash = Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
+        return new UnsupportedSchema($"opaque-allOf:{hash}", origin, EmptyOpaque.Instance);
     }
 
     private UnsupportedSchema InvalidComposition(
@@ -613,6 +650,13 @@ internal sealed class SchemaNormalizer
     private static bool HasSemanticReferenceSiblings(JsonElement element) =>
         element.EnumerateObject().Any(property =>
             property.Name != "$ref" &&
+            !IgnoredKeywords.Contains(property.Name) &&
+            !property.Name.StartsWith("x-", StringComparison.Ordinal));
+
+    private static bool HasOnlyNullableReferenceSibling(JsonElement element) =>
+        ReadNullable(element) &&
+        !element.EnumerateObject().Any(property =>
+            property.Name is not ("$ref" or "nullable") &&
             !IgnoredKeywords.Contains(property.Name) &&
             !property.Name.StartsWith("x-", StringComparison.Ordinal));
 
