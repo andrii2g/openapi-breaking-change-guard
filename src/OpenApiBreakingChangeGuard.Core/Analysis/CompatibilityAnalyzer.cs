@@ -103,7 +103,11 @@ public sealed class CompatibilityAnalyzer
             newLoaded.Version,
             options.Profile,
             changes.Items,
-            diagnostics.Items);
+            diagnostics.Items,
+            options.OldRevision,
+            options.NewRevision,
+            options.OldRevisionUrl,
+            options.NewRevisionUrl);
     }
 
     private static void ValidateLimits(AnalysisLimits limits)

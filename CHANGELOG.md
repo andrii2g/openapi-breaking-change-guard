@@ -18,6 +18,9 @@ Versioning after the first release.
 - Reviewed OpenAI API baseline pinned to upstream commit
   `f9400172ebe08522ab228b771d885e3bd5456e42`, with SHA-256 provenance lock.
 - Full-baseline regression against the current OpenAI specification.
+- Optional old/new source revisions and direct HTTPS source links in reports.
+- API-method review summary grouped from breaking findings.
+- Commit-pinned current downloads and revision provenance in the OpenAI monitor.
 
 ### Fixed
 

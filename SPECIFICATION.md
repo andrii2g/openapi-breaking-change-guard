@@ -48,16 +48,20 @@ The analysis result contains:
 
 - Old and new source labels.
 - Detected OpenAPI versions.
+- Optional caller-supplied old and new source revisions and HTTPS file URLs.
 - Ordered changes.
 - Ordered diagnostics.
 - Counts by severity.
+- A deterministic method-level review summary derived from breaking findings.
 - Whether analysis was complete.
 
 Console output is always produced unless a future quiet option is approved.
 Markdown output is produced only when `--report PATH` is supplied.
 
 Reports must not contain current time, machine paths beyond user-supplied
-labels, random IDs, or culture-sensitive formatting.
+labels, random IDs, or culture-sensitive formatting. Optional source revisions
+are treated as display metadata and must never be inferred through network or
+filesystem access by the core.
 
 ## 5. Exit contract
 

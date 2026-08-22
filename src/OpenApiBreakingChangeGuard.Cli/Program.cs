@@ -48,7 +48,14 @@ internal static class Program
                 NormalizeLabel(arguments.OldPath),
                 newStream,
                 NormalizeLabel(arguments.NewPath),
-                new AnalysisOptions { Profile = arguments.Profile }).ConfigureAwait(false);
+                new AnalysisOptions
+                {
+                    Profile = arguments.Profile,
+                    OldRevision = arguments.OldRevision,
+                    NewRevision = arguments.NewRevision,
+                    OldRevisionUrl = arguments.OldRevisionUrl,
+                    NewRevisionUrl = arguments.NewRevisionUrl,
+                }).ConfigureAwait(false);
 
             Console.Write(new ConsoleReportRenderer().Render(
                 result,
@@ -103,6 +110,10 @@ internal static class Program
         "  <old-spec>                      Accepted OpenAPI JSON file.\n" +
         "  <new-spec>                      Candidate OpenAPI JSON file.\n\n" +
         "Options:\n" +
+        "  --old-revision <value>         Source revision for the accepted specification.\n" +
+        "  --new-revision <value>         Source revision for the candidate specification.\n" +
+        "  --old-revision-url <url>       HTTPS file URL for the accepted revision.\n" +
+        "  --new-revision-url <url>       HTTPS file URL for the candidate revision.\n" +
         "  --report <path>                 Write a Markdown report.\n" +
         "  --profile <client|strict>       Compatibility profile. Default: client.\n" +
         "  --include-info                  Include Info changes in console details.\n" +

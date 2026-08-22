@@ -13,6 +13,17 @@
 | NonBreaking | 4 |
 | Info | 0 |
 
+## API methods requiring review
+
+2 API methods have breaking findings and should be reviewed before accepting the candidate.
+
+| Method | Path | Breaking findings | Review focus |
+|---|---|---:|---|
+| `GET` | `/v1/widgets` | 4 | `OBCG007` — Parameter became required<br>`OBCG009` — Response code removed<br>`OBCG011` — Property removed<br>`OBCG018` — Primitive type changed |
+| `POST` | `/v1/widgets` | 1 | `OBCG002` — Operation removed |
+
+> 1 additional breaking finding is path-level and not assigned to a single API method.
+
 ## Breaking changes
 
 ### OBCG001 — Path removed

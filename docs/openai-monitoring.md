@@ -68,13 +68,16 @@ The workflow:
 
 1. Checks out the default branch.
 2. Builds the tool in Release mode.
-3. Downloads current `main/openapi.json` with retries.
-4. Verifies both documents are non-empty JSON.
-5. Compares current against the accepted baseline.
-6. Captures the guard exit code without stopping report publication.
-7. Adds Markdown to the workflow job summary.
-8. Uploads the report, current specification, and download metadata.
-9. Fails at the end when the guard result is non-zero.
+3. Resolves the exact commit currently referenced by upstream `main`.
+4. Downloads `openapi.json` from that pinned commit with retries.
+5. Verifies both documents are non-empty JSON.
+6. Passes the baseline and current commit SHAs and exact GitHub file URLs into
+   the report.
+7. Compares current against the accepted baseline.
+8. Captures the guard exit code without stopping report publication.
+9. Adds Markdown to the workflow job summary.
+10. Uploads the report, current specification, resolved commit, and download metadata.
+11. Fails at the end when the guard result is non-zero.
 
 The minute is intentionally not `0` because scheduled GitHub workloads may be
 delayed at the start of an hour.

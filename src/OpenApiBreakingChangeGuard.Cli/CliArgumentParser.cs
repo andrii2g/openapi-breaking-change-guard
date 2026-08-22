@@ -10,15 +10,19 @@ internal static class CliArgumentParser
         ArgumentNullException.ThrowIfNull(arguments);
         if (arguments.Any(argument => argument is "-h" or "--help"))
         {
-            return new(string.Empty, string.Empty, null, CompatibilityProfile.Client, false, 200, true, false);
+            return new(string.Empty, string.Empty, null, null, null, null, null, CompatibilityProfile.Client, false, 200, true, false);
         }
 
         if (arguments.Any(argument => argument == "--version"))
         {
-            return new(string.Empty, string.Empty, null, CompatibilityProfile.Client, false, 200, false, true);
+            return new(string.Empty, string.Empty, null, null, null, null, null, CompatibilityProfile.Client, false, 200, false, true);
         }
 
         var positional = new List<string>();
+        string? oldRevision = null;
+        string? newRevision = null;
+        string? oldRevisionUrl = null;
+        string? newRevisionUrl = null;
         string? report = null;
         string? profile = null;
         string? maximum = null;
@@ -35,7 +39,11 @@ internal static class CliArgumentParser
                 continue;
             }
 
-            if (TryReadOption(argument, "--report", arguments, ref index, ref report) ||
+            if (TryReadOption(argument, "--old-revision", arguments, ref index, ref oldRevision) ||
+                TryReadOption(argument, "--new-revision", arguments, ref index, ref newRevision) ||
+                TryReadOption(argument, "--old-revision-url", arguments, ref index, ref oldRevisionUrl) ||
+                TryReadOption(argument, "--new-revision-url", arguments, ref index, ref newRevisionUrl) ||
+                TryReadOption(argument, "--report", arguments, ref index, ref report) ||
                 TryReadOption(argument, "--profile", arguments, ref index, ref profile) ||
                 TryReadOption(argument, "--max-console-changes", arguments, ref index, ref maximum))
             {
@@ -68,7 +76,7 @@ internal static class CliArgumentParser
             throw new CliUsageException("Option '--max-console-changes' must be an integer from 0 through 10,000.");
         }
 
-        return new(positional[0], positional[1], report, parsedProfile, includeInfo, parsedMaximum, false, false);
+        return new(positional[0], positional[1], oldRevision, newRevision, oldRevisionUrl, newRevisionUrl, report, parsedProfile, includeInfo, parsedMaximum, false, false);
     }
 
     private static bool TryReadOption(

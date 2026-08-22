@@ -55,6 +55,38 @@ public sealed class CliProcessTests
         }
     }
 
+    [Fact]
+    public async Task RevisionMetadataFlowsToConsoleAndMarkdown()
+    {
+        var root = FindRepositoryRoot();
+        var example = Path.Combine(root, "examples", "old.json");
+        var report = Path.Combine(Path.GetTempPath(), $"obcg-revisions-{Guid.NewGuid():N}.md");
+        try
+        {
+            var result = await RunAsync(
+                root,
+                example,
+                example,
+                "--old-revision",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "--new-revision=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "--old-revision-url=https://github.com/example/api/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/openapi.json",
+                "--new-revision-url=https://github.com/example/api/blob/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/openapi.json",
+                "--report",
+                report);
+
+            Assert.Equal(0, result.ExitCode);
+            Assert.Contains("@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", result.StandardOutput, StringComparison.Ordinal);
+            var markdown = await File.ReadAllTextAsync(report);
+            Assert.Contains("| Input | File | Revision | OpenAPI |", markdown, StringComparison.Ordinal);
+            Assert.Contains("[`bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`](<https://github.com/example/api/blob/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/openapi.json>)", markdown, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(report);
+        }
+    }
+
     private static async Task<ProcessResult> RunAsync(string root, params string[] arguments)
     {
         var assembly = Path.Combine(root, "src", "OpenApiBreakingChangeGuard.Cli", "bin", "Release", "net10.0", "openapi-guard.dll");

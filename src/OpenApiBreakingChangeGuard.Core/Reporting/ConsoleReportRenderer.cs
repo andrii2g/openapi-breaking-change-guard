@@ -19,10 +19,10 @@ public sealed class ConsoleReportRenderer
         }
 
         var builder = new StringBuilder();
-        builder.Append("OpenAPI Breaking Change Guard\n\n")
-            .Append("Old: ").Append(result.OldLabel).Append(" (OpenAPI ").Append(result.OldOpenApiVersion).Append(")\n")
-            .Append("New: ").Append(result.NewLabel).Append(" (OpenAPI ").Append(result.NewOpenApiVersion).Append(")\n")
-            .Append("Profile: ").Append(result.Profile.ToString().ToLowerInvariant()).Append('\n')
+        builder.Append("OpenAPI Breaking Change Guard\n\n");
+        AppendInput(builder, "Old", result.OldLabel, result.OldRevision, result.OldOpenApiVersion);
+        AppendInput(builder, "New", result.NewLabel, result.NewRevision, result.NewOpenApiVersion);
+        builder.Append("Profile: ").Append(result.Profile.ToString().ToLowerInvariant()).Append('\n')
             .Append("Analysis: ").Append(result.IsComplete ? "complete" : "incomplete").Append("\n\n")
             .Append("Breaking:     ").Append(result.BreakingCount.ToString(CultureInfo.InvariantCulture)).Append('\n')
             .Append("NonBreaking:  ").Append(result.NonBreakingCount.ToString(CultureInfo.InvariantCulture)).Append('\n')
@@ -60,6 +60,13 @@ public sealed class ConsoleReportRenderer
         }
 
         return builder.ToString();
+    }
+
+    private static void AppendInput(StringBuilder builder, string kind, string label, string? revision, string openApiVersion)
+    {
+        builder.Append(kind).Append(": ").Append(label);
+        if (revision is not null) builder.Append(" @ ").Append(revision);
+        builder.Append(" (OpenAPI ").Append(openApiVersion).Append(")\n");
     }
 
     private static string SeverityLabel(ChangeSeverity severity) => severity switch

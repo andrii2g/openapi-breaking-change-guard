@@ -24,6 +24,10 @@ Arguments:
   <new-spec>                      Candidate OpenAPI JSON file.
 
 Options:
+  --old-revision <value>         Source revision for the accepted specification.
+  --new-revision <value>         Source revision for the candidate specification.
+  --old-revision-url <url>       HTTPS file URL for the accepted revision.
+  --new-revision-url <url>       HTTPS file URL for the candidate revision.
   --report <path>                 Write a Markdown report.
   --profile <client|strict>       Compatibility profile. Default: client.
   --include-info                  Include Info changes in console details.
@@ -37,8 +41,13 @@ Do not introduce subcommands in the MVP.
 ## Parsing rules
 
 - Options may appear before, between, or after positional arguments.
-- `--report=value`, `--profile=value`, and
-  `--max-console-changes=value` are accepted in addition to separated values.
+- Scalar options accept both `--option value` and `--option=value` forms.
+- Revisions are optional opaque display values containing 1 through 256
+  non-control characters. Full 40-character commit SHAs are recommended for Git
+  sources.
+- A revision URL requires its corresponding revision and must be an absolute
+  HTTPS URL without embedded credentials. Markdown links the revision label to
+  this exact source file; the console remains plain text.
 - Unknown options fail with exit `2`.
 - Duplicate scalar options fail with exit `2`; do not silently choose one.
 - Exactly two positional arguments are required unless help/version is present.
@@ -93,6 +102,10 @@ openapi-guard old.json new.json
 openapi-guard \
   baselines/openai.json \
   artifacts/openai-current.json \
+  --old-revision f9400172ebe08522ab228b771d885e3bd5456e42 \
+  --new-revision f85dbe223d40e1a31cba812ab2d755c7e98a92a3 \
+  --old-revision-url https://github.com/openai/openai-openapi/blob/f9400172ebe08522ab228b771d885e3bd5456e42/openapi.json \
+  --new-revision-url https://github.com/openai/openai-openapi/blob/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.json \
   --profile client \
   --include-info \
   --report artifacts/openai-report.md

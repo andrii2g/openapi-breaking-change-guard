@@ -19,7 +19,8 @@ failures.
 - Resolve local `$ref` values with cycle protection.
 - Classify changes as `Breaking`, `NonBreaking`, or `Info`.
 - Print a deterministic console report.
-- Optionally write a deterministic Markdown report.
+- Optionally write a deterministic Markdown report with an API-method review
+  summary before exhaustive findings.
 - Return a non-zero process exit code when breaking changes exist.
 - Run in ordinary pull-request CI and in a scheduled OpenAI API monitor.
 
@@ -89,8 +90,10 @@ and compares it with a reviewed file committed at:
 The accepted baseline is OpenAI commit
 [`f9400172ebe08522ab228b771d885e3bd5456e42`](https://github.com/openai/openai-openapi/commit/f9400172ebe08522ab228b771d885e3bd5456e42)
 from 2026-07-22. Its lock file records the pinned source, reviewer, acceptance
-time, and SHA-256. The scheduled workflow verifies that hash and never updates
-the accepted baseline automatically.
+time, and SHA-256. The scheduled workflow verifies that hash, resolves and
+downloads an exact current upstream commit, and includes both commit hashes as
+links to their exact `openapi.json` files. It never updates the accepted baseline
+automatically.
 
 ## Repository map
 

@@ -15,8 +15,8 @@ Header and totals:
 ```text
 OpenAPI Breaking Change Guard
 
-Old: examples/old.json (OpenAPI 3.1.0)
-New: examples/new.json (OpenAPI 3.1.0)
+Old: baselines/openai.json @ f9400172ebe08522ab228b771d885e3bd5456e42 (OpenAPI 3.1.0)
+New: artifacts/openai-current.json @ f85dbe223d40e1a31cba812ab2d755c7e98a92a3 (OpenAPI 3.1.0)
 Profile: client
 Analysis: complete
 
@@ -62,11 +62,12 @@ Required sections:
 2. Verdict block.
 3. Input metadata.
 4. Counts table.
-5. Breaking changes.
-6. Non-breaking changes.
-7. Informational changes.
-8. Diagnostics.
-9. Supported-scope note.
+5. API methods requiring review.
+6. Breaking changes.
+7. Non-breaking changes.
+8. Informational changes.
+9. Diagnostics.
+10. Supported-scope note.
 
 Template:
 
@@ -75,16 +76,25 @@ Template:
 
 > **Verdict: Breaking changes detected.**
 
-| Input | File | OpenAPI |
-|---|---|---|
-| Old | `old.json` | `3.1.0` |
-| New | `new.json` | `3.1.0` |
+| Input | File | Revision | OpenAPI |
+|---|---|---|---|
+| Old | `baselines/openai.json` | [`f9400172ebe08522ab228b771d885e3bd5456e42`](https://github.com/openai/openai-openapi/blob/f9400172ebe08522ab228b771d885e3bd5456e42/openapi.json) | `3.1.0` |
+| New | `artifacts/openai-current.json` | [`f85dbe223d40e1a31cba812ab2d755c7e98a92a3`](https://github.com/openai/openai-openapi/blob/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.json) | `3.1.0` |
 
 | Severity | Count |
 |---|---:|
 | Breaking | 2 |
 | NonBreaking | 3 |
 | Info | 1 |
+
+## API methods requiring review
+
+2 API methods have breaking findings and should be reviewed before accepting the candidate.
+
+| Method | Path | Breaking findings | Review focus |
+|---|---|---:|---|
+| `POST` | `/v1/widgets` | 2 | `OBCG002` — Operation removed<br>`OBCG013` — Required request property added |
+| `GET` | `/v1/widgets` | 1 | `OBCG011` — Property removed |
 
 ## Breaking changes
 
@@ -93,6 +103,17 @@ Template:
 - Location: `paths./v1/widgets.post`
 - Change: Operation removed: `POST /v1/widgets`.
 ```
+
+The `Revision` column is included when either input has revision metadata. A
+missing revision is shown as an em dash. When neither revision is supplied, the
+column is omitted to preserve compact output for ordinary local file comparisons.
+If a validated revision URL is present, the revision becomes a direct link to
+the exact source document.
+
+The review table includes only operations with breaking findings. Rows are
+sorted by descending finding count, then path and method using ordinal order.
+Distinct rule IDs summarize why each operation needs attention. Breaking path
+findings that do not belong to one operation are called out separately.
 
 ## Escaping
 

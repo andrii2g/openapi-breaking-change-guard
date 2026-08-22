@@ -1,7 +1,7 @@
 # Testing strategy
 
 The test suite is intentionally compact and behavior-oriented. It currently
-contains 36 tests and runs as part of the .NET 10 solution.
+contains 40 tests and runs as part of the .NET 10 solution.
 
 ## Current test groups
 
