@@ -302,6 +302,11 @@ internal sealed class SchemaNormalizer
         foreach (var value in enumElement.EnumerateArray())
         {
             var canonical = CanonicalizeEnum(value);
+            if (value.ValueKind is not (JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False or JsonValueKind.Number or JsonValueKind.String))
+            {
+                return InvalidComposition(origin.LogicalLocation, origin, opaque, "Enum values must be primitive JSON values or null.");
+            }
+
             inferredTypes.Add(TypeFor(value));
             if (!values.TryAdd(canonical.Canonical, canonical))
             {
