@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: monitor-openai-api
@@ -134,6 +135,30 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      - name: Publish provider status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GUARD_EXIT_CODE: ${{ steps.guard.outputs.exit_code }}
+        run: |
+          guard_exit_code="${GUARD_EXIT_CODE:-2}"
+
+          bash scripts/provider-status.sh \
+            --provider-id openai \
+            --provider-label "OpenAI API" \
+            --repository "${{ github.repository }}" \
+            --old-revision "${{ steps.baseline.outputs.ref }}" \
+            --new-revision "${{ steps.current.outputs.ref }}" \
+            --old-revision-url "https://github.com/openai/openai-openapi/blob/${{ steps.baseline.outputs.ref }}/openapi.json" \
+            --new-revision-url "https://github.com/openai/openai-openapi/blob/${{ steps.current.outputs.ref }}/openapi.json" \
+            --guard-exit-code "$guard_exit_code" \
+            --run-url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --report artifacts/openai-compatibility-report.md \
+            --status-sha "525a28277a7e94e998e090131a4082b5d4dd97e8" \
+            --status-context "api-compatibility/openai" \
+            --publish
+
       - name: Upload current specification and report
         if: always()
         uses: actions/upload-artifact@v7
@@ -145,6 +170,7 @@ jobs:
             artifacts/openai-current-ref.txt
             artifacts/openai-download-headers.txt
             artifacts/openai-compatibility-report.md
+            artifacts/provider-status/openai/
           if-no-files-found: warn
           retention-days: 30
 

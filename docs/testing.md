@@ -52,6 +52,12 @@ result sorting/deduplication, and console detail limits.
 and 3, plus preservation of an existing report after invalid input. Tests use
 the built apphost or current `dotnet` host; they do not invoke `dotnet run`.
 
+### Workflow support
+
+`scripts/test-provider-status.sh` verifies the provider badge and metadata
+mappings for guard exit codes 0 through 3 and rejects a result whose exit code
+conflicts with its report.
+
 ## Fixture conventions
 
 Reduced external shapes live under `Fixtures/`, with `old.json`, `new.json`, and
@@ -90,6 +96,7 @@ remain visible and do not make analysis incomplete.
 Run before committing:
 
 ```bash
+bash scripts/test-provider-status.sh
 dotnet build OpenApiBreakingChangeGuard.slnx --configuration Release
 dotnet test --solution OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
 dotnet format OpenApiBreakingChangeGuard.slnx --verify-no-changes --no-restore
