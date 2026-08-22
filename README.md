@@ -1,11 +1,15 @@
 # OpenAPI Breaking Change Guard
 
+[![CI](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/ci.yml)
+[![OpenAI API monitor](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml/badge.svg)](https://github.com/andrii2g/openapi-breaking-change-guard/actions/workflows/monitor-openai.yml)
+
 CLI tool that compares an accepted OpenAPI contract with a candidate contract and fails
 CI when the candidate can break existing clients.
 
 The tool performs a semantic, direction-aware comparison. It does not report
 irrelevant formatting, ordering, or description-only changes as compatibility
-failures.
+failures. Its Markdown report leads with the affected API methods and links to
+exact source revisions when commit metadata is supplied.
 
 ## Supported behavior
 
@@ -21,6 +25,8 @@ failures.
 - Print a deterministic console report.
 - Optionally write a deterministic Markdown report with an API-method review
   summary before exhaustive findings.
+- Record source revisions in reports and link them directly to exact HTTPS source
+  files.
 - Return a non-zero process exit code when breaking changes exist.
 - Run in ordinary pull-request CI and in a scheduled OpenAI API monitor.
 
@@ -39,10 +45,31 @@ See [docs/limitations.md](docs/limitations.md) for the exact boundary.
 
 ## Usage
 
+Basic comparison:
+
 ```bash
 openapi-guard old.json new.json \
   --report artifacts/compatibility-report.md
 ```
+
+Traceable comparison with exact source revisions:
+
+```bash
+openapi-guard \
+  baselines/openai.json \
+  artifacts/openai-current.json \
+  --old-revision f9400172ebe08522ab228b771d885e3bd5456e42 \
+  --new-revision f85dbe223d40e1a31cba812ab2d755c7e98a92a3 \
+  --old-revision-url https://github.com/openai/openai-openapi/blob/f9400172ebe08522ab228b771d885e3bd5456e42/openapi.json \
+  --new-revision-url https://github.com/openai/openai-openapi/blob/f85dbe223d40e1a31cba812ab2d755c7e98a92a3/openapi.json \
+  --profile client \
+  --include-info \
+  --report artifacts/openai-compatibility-report.md
+```
+
+Revision values are optional labels. A revision URL must be an absolute HTTPS
+URL and makes that revision a direct link in the Markdown input table. Neither
+value changes compatibility analysis.
 
 Included example summary:
 
@@ -58,6 +85,18 @@ Breaking:     6
 NonBreaking:  4
 Info:         0
 ```
+
+The generated Markdown report turns breaking findings into an initial review
+queue before listing all details:
+
+| Method | Path | Breaking findings | Review focus |
+|---|---|---:|---|
+| `GET` | `/v1/widgets` | 4 | Parameter required; response removed; property removed; type changed |
+| `POST` | `/v1/widgets` | 1 | Operation removed |
+
+See [examples/expected-report.md](examples/expected-report.md) for the complete
+deterministic example and [docs/cli-contract.md](docs/cli-contract.md) for every
+option.
 
 Exit codes:
 
@@ -120,6 +159,7 @@ Prerequisite: .NET 10 SDK.
 dotnet restore OpenApiBreakingChangeGuard.slnx
 dotnet build OpenApiBreakingChangeGuard.slnx --configuration Release --no-restore
 dotnet test OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
+dotnet format OpenApiBreakingChangeGuard.slnx --verify-no-changes --no-restore
 ```
 
 Run the included example:
