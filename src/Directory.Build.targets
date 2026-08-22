@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Public renderer methods intentionally remain instance APIs; private implementation
+         signatures prioritize readable traversal call sites over micro-optimization hints. -->
+    <NoWarn>$(NoWarn);CA1036;CA1068;CA1822;CA1859</NoWarn>
+  </PropertyGroup>
+</Project>

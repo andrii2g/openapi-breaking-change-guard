@@ -30,7 +30,8 @@ public sealed class MarkdownReportRenderer
         RenderSection(builder, "Breaking changes", ChangeSeverity.Breaking, result.Changes);
         RenderSection(builder, "Non-breaking changes", ChangeSeverity.NonBreaking, result.Changes);
         RenderSection(builder, "Informational changes", ChangeSeverity.Info, result.Changes);
-        builder.Append("\n## Diagnostics\n\n");
+        EnsureBlankLine(builder);
+        builder.Append("## Diagnostics\n\n");
         if (result.Diagnostics.Count == 0)
         {
             builder.Append("No diagnostics.\n");
@@ -46,7 +47,8 @@ public sealed class MarkdownReportRenderer
             }
         }
 
-        builder.Append("\n## Scope\n\n")
+        EnsureBlankLine(builder);
+        builder.Append("## Scope\n\n")
             .Append("This report covers the documented JSON-only OpenAPI 3.0/3.1 compatibility\n")
             .Append("subset. See `docs/limitations.md` for exclusions.\n");
         return builder.ToString();
@@ -58,7 +60,8 @@ public sealed class MarkdownReportRenderer
         ChangeSeverity severity,
         IReadOnlyList<CompatibilityChange> changes)
     {
-        builder.Append("\n## ").Append(heading).Append("\n\n");
+        EnsureBlankLine(builder);
+        builder.Append("## ").Append(heading).Append("\n\n");
         var matching = changes.Where(change => change.Severity == severity).ToArray();
         if (matching.Length == 0)
         {
@@ -153,7 +156,15 @@ public sealed class MarkdownReportRenderer
     }
 
     private static string UsageFromSummary(string summary) => summary.StartsWith("Request", StringComparison.Ordinal) ? "Request" : "Response";
-    private static string SummaryTail(string summary) => summary[(summary.LastIndexOf(':') + 1)..].Trim();
+    private static void EnsureBlankLine(StringBuilder builder)
+    {
+        if (builder.Length < 2 || builder[^1] != '\n' || builder[^2] != '\n')
+        {
+            builder.Append('\n');
+        }
+    }
+
+    private static string SummaryTail(string summary) => summary[(summary.IndexOf(": ", StringComparison.Ordinal) + 2)..].Trim();
     private static string EnumDisplay(string canonical)
     {
         var first = canonical.Split(',')[0];
