@@ -39,10 +39,11 @@ jobs:
 
       - name: Test
         run: >-
-          dotnet test OpenApiBreakingChangeGuard.slnx
+          dotnet test
+          --solution OpenApiBreakingChangeGuard.slnx
           --configuration Release
           --no-build
-          --collect:"XPlat Code Coverage"
+          --coverlet
           --results-directory artifacts/test-results
 
       - name: Verify formatting

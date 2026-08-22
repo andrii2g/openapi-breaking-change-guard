@@ -8,21 +8,22 @@ public sealed class CliProcessTests
     [Fact]
     public async Task CliReturnsAllDocumentedExitCodes()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var root = FindRepositoryRoot();
         var exampleOld = Path.Combine(root, "examples", "old.json");
         var exampleNew = Path.Combine(root, "examples", "new.json");
-        var success = await RunAsync(root, exampleOld, exampleOld);
-        var breaking = await RunAsync(root, exampleOld, exampleNew);
+        var success = await RunAsync(root, cancellationToken, exampleOld, exampleOld);
+        var breaking = await RunAsync(root, cancellationToken, exampleOld, exampleNew);
         var invalidPath = Path.Combine(Path.GetTempPath(), $"obcg-invalid-{Guid.NewGuid():N}.json");
         var incompletePath = Path.Combine(Path.GetTempPath(), $"obcg-incomplete-{Guid.NewGuid():N}.json");
         try
         {
-            await File.WriteAllTextAsync(invalidPath, "{");
+            await File.WriteAllTextAsync(invalidPath, "{", cancellationToken);
             await File.WriteAllTextAsync(incompletePath, """
                 { "openapi": "3.1.0", "paths": { "/x": { "get": { "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/missing" } } } } } } } } }
-                """);
-            var invalid = await RunAsync(root, invalidPath, exampleOld);
-            var incomplete = await RunAsync(root, incompletePath, incompletePath);
+                """, cancellationToken);
+            var invalid = await RunAsync(root, cancellationToken, invalidPath, exampleOld);
+            var incomplete = await RunAsync(root, cancellationToken, incompletePath, incompletePath);
 
             Assert.Equal(0, success.ExitCode);
             Assert.Equal(1, breaking.ExitCode);
@@ -39,15 +40,16 @@ public sealed class CliProcessTests
     [Fact]
     public async Task InvalidInputDoesNotOverwriteExistingReport()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var root = FindRepositoryRoot();
         var report = Path.Combine(Path.GetTempPath(), $"obcg-report-{Guid.NewGuid():N}.md");
         try
         {
-            await File.WriteAllTextAsync(report, "preserve me");
-            var result = await RunAsync(root, "missing-old.json", "missing-new.json", "--report", report);
+            await File.WriteAllTextAsync(report, "preserve me", cancellationToken);
+            var result = await RunAsync(root, cancellationToken, "missing-old.json", "missing-new.json", "--report", report);
 
             Assert.Equal(2, result.ExitCode);
-            Assert.Equal("preserve me", await File.ReadAllTextAsync(report));
+            Assert.Equal("preserve me", await File.ReadAllTextAsync(report, cancellationToken));
         }
         finally
         {
@@ -58,6 +60,7 @@ public sealed class CliProcessTests
     [Fact]
     public async Task RevisionMetadataFlowsToConsoleAndMarkdown()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var root = FindRepositoryRoot();
         var example = Path.Combine(root, "examples", "old.json");
         var report = Path.Combine(Path.GetTempPath(), $"obcg-revisions-{Guid.NewGuid():N}.md");
@@ -65,6 +68,7 @@ public sealed class CliProcessTests
         {
             var result = await RunAsync(
                 root,
+                cancellationToken,
                 example,
                 example,
                 "--old-revision",
@@ -77,7 +81,7 @@ public sealed class CliProcessTests
 
             Assert.Equal(0, result.ExitCode);
             Assert.Contains("@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", result.StandardOutput, StringComparison.Ordinal);
-            var markdown = await File.ReadAllTextAsync(report);
+            var markdown = await File.ReadAllTextAsync(report, cancellationToken);
             Assert.Contains("| Input | File | Revision | OpenAPI |", markdown, StringComparison.Ordinal);
             Assert.Contains("[`bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`](<https://github.com/example/api/blob/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/openapi.json>)", markdown, StringComparison.Ordinal);
         }
@@ -87,7 +91,10 @@ public sealed class CliProcessTests
         }
     }
 
-    private static async Task<ProcessResult> RunAsync(string root, params string[] arguments)
+    private static async Task<ProcessResult> RunAsync(
+        string root,
+        CancellationToken cancellationToken,
+        params string[] arguments)
     {
         var assembly = Path.Combine(root, "src", "OpenApiBreakingChangeGuard.Cli", "bin", "Release", "net10.0", "openapi-guard.dll");
         var startInfo = new ProcessStartInfo("dotnet")
@@ -100,9 +107,9 @@ public sealed class CliProcessTests
         startInfo.ArgumentList.Add(assembly);
         foreach (var argument in arguments) startInfo.ArgumentList.Add(argument);
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("CLI process could not be started.");
-        var standardOutput = process.StandardOutput.ReadToEndAsync();
-        var standardError = process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        var standardOutput = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var standardError = process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
         return new(process.ExitCode, await standardOutput, await standardError);
     }
 

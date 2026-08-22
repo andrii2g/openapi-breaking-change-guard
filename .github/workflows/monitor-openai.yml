@@ -148,7 +148,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Apply guard exit code
+      - name: Interpret guard result
         if: always()
         shell: bash
         env:
@@ -159,8 +159,24 @@ jobs:
             exit 2
           fi
 
-          if [[ "$GUARD_EXIT_CODE" != "0" ]]; then
-            echo "::error::OpenAPI guard failed with exit code $GUARD_EXIT_CODE."
-            exit "$GUARD_EXIT_CODE"
-          fi
+          case "$GUARD_EXIT_CODE" in
+            0)
+              echo "No breaking OpenAPI changes detected."
+              ;;
+            1)
+              echo "::warning title=OpenAPI breaking changes detected::Review the job summary and uploaded compatibility report."
+              ;;
+            2)
+              echo "::error title=OpenAPI monitor failed::The guard could not read or validate its inputs, or write the report."
+              exit 2
+              ;;
+            3)
+              echo "::error title=OpenAPI analysis incomplete::Compatibility could not be established within the supported scope."
+              exit 3
+              ;;
+            *)
+              echo "::error title=Unexpected guard result::The guard returned exit code $GUARD_EXIT_CODE."
+              exit 2
+              ;;
+          esac
 

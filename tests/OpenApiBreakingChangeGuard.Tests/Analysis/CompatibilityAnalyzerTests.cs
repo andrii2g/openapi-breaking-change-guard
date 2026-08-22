@@ -151,12 +151,13 @@ public sealed class CompatibilityAnalyzerTests
     [Fact]
     public async Task ReducedOpenAiFixturesProduceExpectedRules()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var root = FindRepositoryRoot();
         var audit = Path.Combine(root, "tests", "OpenApiBreakingChangeGuard.Tests", "Fixtures", "openai-audit-source-removed");
         var mcp = Path.Combine(root, "tests", "OpenApiBreakingChangeGuard.Tests", "Fixtures", "openai-mcp-error-union-narrowed");
 
-        var auditResult = await AnalyzeAsync(await File.ReadAllTextAsync(Path.Combine(audit, "old.json")), await File.ReadAllTextAsync(Path.Combine(audit, "new.json")));
-        var mcpResult = await AnalyzeAsync(await File.ReadAllTextAsync(Path.Combine(mcp, "old.json")), await File.ReadAllTextAsync(Path.Combine(mcp, "new.json")));
+        var auditResult = await AnalyzeAsync(await File.ReadAllTextAsync(Path.Combine(audit, "old.json"), cancellationToken), await File.ReadAllTextAsync(Path.Combine(audit, "new.json"), cancellationToken));
+        var mcpResult = await AnalyzeAsync(await File.ReadAllTextAsync(Path.Combine(mcp, "old.json"), cancellationToken), await File.ReadAllTextAsync(Path.Combine(mcp, "new.json"), cancellationToken));
 
         Assert.Equal(RuleIds.PropertyRemoved, Assert.Single(auditResult.Changes).RuleId);
         var mcpChange = Assert.Single(mcpResult.Changes);

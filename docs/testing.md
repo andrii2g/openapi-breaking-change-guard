@@ -91,7 +91,7 @@ Run before committing:
 
 ```bash
 dotnet build OpenApiBreakingChangeGuard.slnx --configuration Release
-dotnet test OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
+dotnet test --solution OpenApiBreakingChangeGuard.slnx --configuration Release --no-build
 dotnet format OpenApiBreakingChangeGuard.slnx --verify-no-changes --no-restore
 ```
 
