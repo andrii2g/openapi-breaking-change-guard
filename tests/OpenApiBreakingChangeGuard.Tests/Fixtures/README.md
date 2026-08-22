@@ -8,7 +8,8 @@ The two included OpenAI-shaped fixtures are reduced, hand-authored regressions:
 - `openai-mcp-error-union-narrowed` models removal of the primitive `string`
   alternative from an `anyOf` response field.
 
-Add the complete fixture catalog from `docs/testing.md` while implementing rule
-phases. Keep fixtures minimal enough that a reviewer can understand the intended
-finding without searching through unrelated schema.
+Most synthetic rule cases remain inline in focused test classes. Add another
+fixture when a reusable or real-world shape is easier to review as standalone
+JSON. Keep it minimal enough that its intended finding is clear without
+searching through unrelated schema.
 
