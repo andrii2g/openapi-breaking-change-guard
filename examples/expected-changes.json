@@ -1,0 +1,62 @@
+{
+  "isComplete": true,
+  "exitCode": 1,
+  "counts": {
+    "breaking": 6,
+    "nonBreaking": 4,
+    "info": 0
+  },
+  "changes": [
+    {
+      "ruleId": "OBCG001",
+      "severity": "Breaking",
+      "location": "paths./v1/legacy"
+    },
+    {
+      "ruleId": "OBCG007",
+      "severity": "Breaking",
+      "location": "paths./v1/widgets.get.parameters.query.limit"
+    },
+    {
+      "ruleId": "OBCG011",
+      "severity": "Breaking",
+      "location": "paths./v1/widgets.get.responses.200.content.application/json.schema.items.properties.display_name"
+    },
+    {
+      "ruleId": "OBCG018",
+      "severity": "Breaking",
+      "location": "paths./v1/widgets.get.responses.200.content.application/json.schema.items.properties.id"
+    },
+    {
+      "ruleId": "OBCG009",
+      "severity": "Breaking",
+      "location": "paths./v1/widgets.get.responses.404"
+    },
+    {
+      "ruleId": "OBCG002",
+      "severity": "Breaking",
+      "location": "paths./v1/widgets.post"
+    },
+    {
+      "ruleId": "OBCG003",
+      "severity": "NonBreaking",
+      "location": "paths./v1/health"
+    },
+    {
+      "ruleId": "OBCG019",
+      "severity": "NonBreaking",
+      "location": "paths./v1/widgets.get.responses.200.content.application/json.schema.items.properties.error"
+    },
+    {
+      "ruleId": "OBCG016",
+      "severity": "NonBreaking",
+      "location": "paths./v1/widgets.get.responses.200.content.application/json.schema.items.properties.status"
+    },
+    {
+      "ruleId": "OBCG014",
+      "severity": "NonBreaking",
+      "location": "paths./v1/widgets.get.responses.200.content.application/json.schema.items.properties.tag"
+    }
+  ],
+  "diagnostics": []
+}
