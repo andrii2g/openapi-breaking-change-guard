@@ -72,7 +72,7 @@ internal sealed class SchemaRules
                 CompareUnions(oldUnion, newUnion, context);
                 return;
             case (PrimitiveSchema oldPrimitive, PrimitiveSchema newPrimitive):
-                AddTypeReplacement(oldPrimitive.Type, newPrimitive.Type, context);
+                if (oldPrimitive.Type != newPrimitive.Type) AddTypeReplacement(oldPrimitive.Type, newPrimitive.Type, context);
                 return;
             case (PrimitiveSchema oldPrimitive, EnumSchema newEnum):
                 ComparePrimitiveToEnum(oldPrimitive, newEnum, context, primitiveIsOld: true);

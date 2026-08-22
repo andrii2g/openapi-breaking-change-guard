@@ -320,7 +320,7 @@ internal sealed class SchemaNormalizer
 
         var types = ReadTypes(owner).ToHashSet(StringComparer.Ordinal);
         if (types.Count == 0) types.UnionWith(inferredTypes);
-        if (ReadNullable(owner)) types.Add("null");
+        types.Remove("null");
         return new EnumSchema(
             types.Order(StringComparer.Ordinal).ToArray(),
             values.Values.Order().ToArray(),
@@ -464,8 +464,10 @@ internal sealed class SchemaNormalizer
 
     private NormalizedSchema ApplyNullable(JsonElement owner, NormalizedSchema schema, SchemaOrigin origin)
     {
-        if (!ReadNullable(owner) || schema is UnionSchema || schema is EnumSchema ||
-            schema is PrimitiveSchema { Type: "null" })
+        var allowsNull = ReadNullable(owner) || ReadTypes(owner).Contains("null", StringComparer.Ordinal);
+        if (!allowsNull || schema is UnionSchema ||
+            schema is PrimitiveSchema { Type: "null" } ||
+            schema is EnumSchema enumSchema && enumSchema.Values.Any(static value => value.Canonical == "null"))
         {
             return schema;
         }
