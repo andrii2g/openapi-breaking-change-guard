@@ -1,0 +1,52 @@
+name: Compatibility bug
+description: Report a false positive, false negative, crash, or unclear diagnostic.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Problem type
+      options:
+        - False negative
+        - False positive
+        - Crash or incomplete analysis
+        - Incorrect exit code
+        - Report formatting
+    validations:
+      required: true
+
+  - type: textarea
+    id: old
+    attributes:
+      label: Minimal old specification
+      description: Do not include confidential API definitions.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: new
+    attributes:
+      label: Minimal new specification
+      description: Do not include confidential API definitions.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Guard version
+      placeholder: 0.1.0
+    validations:
+      required: true
+
