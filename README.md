@@ -1,0 +1,2 @@
+# OpenAPI Breaking Change Guard
+
